@@ -1,5 +1,6 @@
 package com.filesample.service;
 
+import com.filesample.dto.ContentDTO;
 import com.filesample.dto.FileMetaDataDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +20,13 @@ public class FileMetaDataService
     private static final Logger logger = LoggerFactory.getLogger(FileMetaDataService.class);
     private static final List<String> validExtensions = Arrays.asList("csv", "xlsx");
 
+    /**
+     * Scans the given directory and returns the meta data of a valid file
+     *
+     * @param directory the directory to scan
+     * @return list of file meta data
+     * @throws IOException IO Exception
+     */
     public List<FileMetaDataDTO> getFiles(final String directory) throws IOException
     {
         Path path = Paths.get(directory);
@@ -58,13 +66,25 @@ public class FileMetaDataService
         }
     }
 
-    public List<String> getContents(final List<FileMetaDataDTO> dtoList)
+    /**
+     * Returns the content for all the files
+     *
+     * @param dtoList List of files containing content
+     * @return the list of content
+     */
+    public List<ContentDTO> getContents(final List<FileMetaDataDTO> dtoList)
     {
-        List<String> contents = new ArrayList<>();
+        List<ContentDTO> contents = new ArrayList<>();
         dtoList.forEach(dto -> {
             try
             {
-                contents.addAll(Files.lines(dto.getPath()).collect(Collectors.toList()));
+                Files.lines(dto.getPath()).forEach(content -> {
+                    String list[] = content.split(",");
+                    if (list.length == 3)
+                    {
+                        contents.add(new ContentDTO(list[0].trim(), list[1].trim(), list[2].trim()));
+                    }
+                });
             }
             catch (IOException exception)
             {
